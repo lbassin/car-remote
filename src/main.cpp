@@ -9,6 +9,8 @@
 #include "main.h"
 #include "flags.h"
 
+#define ACTIVITY_LED_PIN 9
+
 Nunchuk nchuk;
 
 Control motor, steering;
@@ -31,6 +33,11 @@ void setup()
 		Serial.println("Nunchuk not detected!");
 		delay(1000);
 	}
+
+	pinMode(ACTIVITY_LED_PIN, OUTPUT);
+	digitalWrite(ACTIVITY_LED_PIN, HIGH);
+	delay(1000);
+	digitalWrite(ACTIVITY_LED_PIN, LOW);
 
 	MsTimer2::set(100, sendData);
   	MsTimer2::start();
@@ -86,7 +93,7 @@ void updateButton() {
 }
 
 uint8_t getFormattedFlags() {
-	uint8_t output = 0x0;
+	uint8_t output = REMOTE_ENABLED;
 
 	if (motor.direction == DIRECTION_FORWARD) {
 		output |= REMOTE_FORWARD;
@@ -116,14 +123,17 @@ uint8_t getFormattedFlags() {
 }
 
 void sendData() {
-	uint8_t data[3];
+	digitalWrite(ACTIVITY_LED_PIN, HIGH);
 
+	uint8_t data[3];
 	data[0] = getFormattedFlags();
 	data[1] = motor.speed;
 	data[2] = steering.speed;
 
 	remoteDriver.send(data, sizeof(uint8_t) * 3);
-	// remoteDriver.waitPacketSent();
+	//remoteDriver.waitPacketSent();
+	
+	digitalWrite(ACTIVITY_LED_PIN, LOW);
 }
 
 void debugControls() {
